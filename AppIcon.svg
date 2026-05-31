@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Background gradient - black glass -->
+    <linearGradient id="bgGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#2A2A2A" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#0A0A0A" stop-opacity="0.98"/>
+    </linearGradient>
+    <!-- Top highlight/refraction -->
+    <radialGradient id="highlight" cx="50%" cy="25%" r="40%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Glyph shadow filter -->
+    <filter id="glyphShadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect x="82" y="82" width="860" height="860" rx="190" ry="190" fill="url(#bgGrad)"/>
+
+  <!-- Glass refraction highlight -->
+  <ellipse cx="512" cy="300" rx="320" ry="160" fill="url(#highlight)"/>
+
+  <!-- Glass edge border -->
+  <rect x="85" y="85" width="854" height="854" rx="187" ry="187"
+        fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+
+  <!-- Headphone glyph -->
+  <g filter="url(#glyphShadow)" stroke="white" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Headband arc -->
+    <path d="M 330,540 A 182,182 0 0,1 694,540" stroke-width="34"/>
+
+    <!-- Left connector -->
+    <line x1="330" y1="540" x2="330" y2="580" stroke-width="34"/>
+
+    <!-- Right connector -->
+    <line x1="694" y1="540" x2="694" y2="580" stroke-width="34"/>
+
+    <!-- Left ear cup -->
+    <rect x="295" y="565" width="70" height="120" rx="28" ry="28" stroke-width="28" fill="white"/>
+
+    <!-- Right ear cup -->
+    <rect x="659" y="565" width="70" height="120" rx="28" ry="28" stroke-width="28" fill="white"/>
+  </g>
+</svg>
