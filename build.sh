@@ -16,6 +16,7 @@ echo "Building Swift Source..."
 mkdir -p "$BUILD_DIR"
 swiftc -O -whole-module-optimization Sources/audx/*.swift \
     -o "$BUILD_DIR/$APP_NAME" \
+    -Xlinker -no_adhoc_codesign \
     -framework SwiftUI -framework AppKit -framework CoreAudio -framework IOBluetooth -framework Carbon -framework UserNotifications
 
 echo "Creating App Bundle Structure..."
@@ -46,7 +47,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<EOF
     <key>CFBundleExecutable</key>
     <string>$APP_NAME</string>
     <key>CFBundleIdentifier</key>
-    <string>com.kangwei.$APP_NAME</string>
+    <string>com.wkngw.$APP_NAME</string>
     <key>CFBundleName</key>
     <string>$APP_NAME</string>
     <key>CFBundleVersion</key>
@@ -71,5 +72,8 @@ EOF
 
 echo "Forcing LaunchServices reload..."
 touch "$APP_DIR"
+
+echo "Signing app bundle..."
+codesign --sign - --identifier "com.wkngw.$APP_NAME" --options runtime "$APP_DIR"
 
 echo "App bundle created at $APP_DIR"
