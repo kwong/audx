@@ -35,6 +35,16 @@ Do **not** use `swift build` — there is no `Package.swift`. The project uses d
 
 No automated test suite. `test_battery.swift` and `test_bt_battery.swift` are standalone exploratory scripts for API investigation, run manually with `swift <file>`.
 
+## UI Style
+
+- Popover-based, compact, menu-bar-native feel — no Dock presence
+- Use SF Symbols for device icons; prefer filled variants for active/default state
+- Accent color for selection highlights; muted secondary tones for inactive/hover states
+- Subtle animations for selection and hover transitions (spring/ease-out, short duration)
+- Keyboard navigable — every interactive element should be reachable without a mouse
+- Strip focus rings; use custom selection highlight instead
+- Typography: system font throughout, small sizes (10–14pt), semibold for section headers, secondary color for labels and captions
+
 ## Key Decisions
 
 - Direct `swiftc` compilation instead of SPM's xcbuild

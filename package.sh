@@ -26,7 +26,7 @@ cp -R "${APP_NAME}.app" "$STAGING_DIR/"
 echo "Creating package..."
 pkgbuild \
     --root "$STAGING_DIR" \
-    --identifier "com.kwong.${APP_NAME}" \
+    --identifier "com.wkngw.${APP_NAME}" \
     --version "$VERSION" \
     --install-location /Applications \
     "$PKG_NAME"
