@@ -26,27 +26,37 @@ class BluetoothManager: ObservableObject {
         
         for device in paired {
             if device.isConnected() {
-                // Major class 1 is Computer, 2 is Phone, 4 is Audio/Video
-                // Sometimes audio devices present as other classes depending on profile,
-                // but usually, if it's an audio sink, it has major device class 4 or related service classes.
-                // We'll trust major device class 4 OR (service class includes Audio/Render).
-                let deviceClass = device.deviceClassMajor
-                
-                // 0x04 is Audio/Video
-                let isAudio = deviceClass == kBluetoothDeviceClassMajorAudio
-                
+                let majorClass = device.deviceClassMajor
+                let serviceClass = device.serviceClassMajor
+                let name = device.nameOrAddress ?? "Unknown"
+                let address = device.addressString ?? "Unknown"
+                print("[BluetoothManager] connected: \(name) majorClass=0x\(String(majorClass, radix: 16)) serviceClass=0x\(String(serviceClass, radix: 16))")
+
+                // Major class 4 = Audio/Video.
+                // Service class bit 0x100 = Audio (some headsets only set service class, not major class).
+                let isAudio = majorClass == kBluetoothDeviceClassMajorAudio
+                    || (serviceClass & 0x100) != 0
+
                 if isAudio {
-                    let name = device.nameOrAddress ?? "Unknown"
-                    let address = device.addressString ?? "Unknown"
                     connected.append(BluetoothAudioDevice(id: address, name: name, device: device))
                 }
             }
         }
         
+        // Update device list immediately so idle manager sees current state
+        connectedAudioDevices = connected
+
+        // Fetch battery levels in background and update in-place when done
+        var snapshot = connected
         DispatchQueue.global(qos: .userInitiated).async {
-            self.fetchBatteryLevels(for: &connected)
+            self.fetchBatteryLevels(for: &snapshot)
             DispatchQueue.main.async {
-                self.connectedAudioDevices = connected
+                // Merge battery data into current list (devices may have changed while fetching)
+                for updated in snapshot {
+                    if let idx = self.connectedAudioDevices.firstIndex(where: { $0.id == updated.id }) {
+                        self.connectedAudioDevices[idx].batteryLevel = updated.batteryLevel
+                    }
+                }
             }
         }
     }

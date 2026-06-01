@@ -95,12 +95,10 @@ class AudioManager: ObservableObject {
             }
         }
         
-        DispatchQueue.main.async {
-            self.outputDevices = outputs
-            self.inputDevices = inputs
-            self.defaultOutputDeviceID = self.getDefaultDevice(for: kAudioHardwarePropertyDefaultOutputDevice)
-            self.defaultInputDeviceID = self.getDefaultDevice(for: kAudioHardwarePropertyDefaultInputDevice)
-        }
+        outputDevices = outputs
+        inputDevices = inputs
+        defaultOutputDeviceID = getDefaultDevice(for: kAudioHardwarePropertyDefaultOutputDevice)
+        defaultInputDeviceID = getDefaultDevice(for: kAudioHardwarePropertyDefaultInputDevice)
     }
     
     func setDefaultOutputDevice(id: AudioDeviceID) {
