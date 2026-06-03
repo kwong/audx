@@ -41,3 +41,15 @@ fastlane/test_output
 # Code coverage
 *.gcda
 *.gcno
+
+# AI agent tooling
+.agent/
+.agents/
+.aider*
+.claude/
+.cline/
+.continue/
+.codex/
+.cursor/
+.roo/
+.windsurf/
