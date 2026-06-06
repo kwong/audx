@@ -1,5 +1,4 @@
 # Xcode
-*.xcodeproj/
 !audx.xcodeproj/
 !audx.xcodeproj/project.pbxproj
 !audx.xcodeproj/xcshareddata/

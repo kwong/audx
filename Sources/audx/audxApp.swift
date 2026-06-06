@@ -10,6 +10,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private extension Bundle {
+    var audxVersion: String {
+        object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
+    }
+}
+
 @main
 struct audxApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -37,9 +43,7 @@ struct PopoverContentView: View {
         )
     }
 
-    private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
-    }
+    private var appVersion: String { Bundle.main.audxVersion }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -287,6 +291,8 @@ struct SettingsView: View {
             set: { idleTimeoutMinutes = timeoutOptions[Int(round($0))] }
         )
     }
+
+    private var appVersion: String { Bundle.main.audxVersion }
     
     var body: some View {
         ZStack {
@@ -308,7 +314,7 @@ struct SettingsView: View {
                                 .foregroundColor(.primary.opacity(0.7))
                         }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("audx")
+                            Text("audx (v\(appVersion))")
                                 .font(.system(size: 16, weight: .bold, design: .rounded))
                                 .foregroundColor(.primary)
                             Text("Settings")
