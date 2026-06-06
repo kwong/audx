@@ -36,6 +36,10 @@ struct PopoverContentView: View {
             set: { idleTimeoutMinutes = timeoutOptions[Int(round($0))] }
         )
     }
+
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -63,7 +67,7 @@ struct PopoverContentView: View {
             Divider().padding(.horizontal, 12)
             
             // Bottom actions
-            HStack {
+            HStack(spacing: 8) {
                 // Shortcut hint
                 Text(shortcutName)
                     .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -74,6 +78,10 @@ struct PopoverContentView: View {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(Color.gray.opacity(0.15))
                     )
+
+                Text("v\(appVersion)")
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundColor(.secondary.opacity(0.75))
                 
                 Spacer()
                 

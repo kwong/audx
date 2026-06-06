@@ -25,8 +25,10 @@ DerivedData/
 *.app
 *.ipa
 *.pkg
+*.dmg
 *.dSYM.zip
 *.dSYM
+.dmg-staging/
 .pkg-staging/
 
 # CocoaPods (if used)

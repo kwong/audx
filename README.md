@@ -12,7 +12,7 @@ audx is built with the following features:
 
 ## Installation
 
-Download the latest Pkg release from the [GitHub Releases](https://github.com/kwong/audx/releases/latest) page and install it.
+Download the latest release from the [GitHub Releases](https://github.com/kwong/audx/releases/latest) page, open the DMG, and drag `audx.app` into Applications.
 
 Launch audx from Applications. It runs as a menu bar app, so you will see its icon in the macOS menu bar rather than in the Dock.
 

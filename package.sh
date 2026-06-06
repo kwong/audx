@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# package.sh - Builds audx and produces a .pkg installer.
+# package.sh - Builds audx and produces both .pkg and .dmg release assets.
 # Usage: VERSION=1.2.3 ./package.sh
 
 set -e
@@ -11,26 +11,45 @@ if [ -z "$VERSION" ]; then
 fi
 
 APP_NAME="audx"
+APP_BUNDLE="${APP_NAME}.app"
 PKG_NAME="${APP_NAME}-${VERSION}.pkg"
-STAGING_DIR=".pkg-staging"
+DMG_NAME="${APP_NAME}-${VERSION}.dmg"
+PKG_STAGING_DIR=".pkg-staging"
+DMG_STAGING_DIR=".dmg-staging"
 
 echo "Building app bundle (version $VERSION)..."
 export VERSION
 ./build.sh
 
-echo "Staging app bundle..."
-rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR"
-cp -R "${APP_NAME}.app" "$STAGING_DIR/"
+echo "Staging app bundle for pkg..."
+rm -rf "$PKG_STAGING_DIR"
+mkdir -p "$PKG_STAGING_DIR"
+cp -R "$APP_BUNDLE" "$PKG_STAGING_DIR/"
 
-echo "Creating package..."
+echo "Creating pkg..."
 pkgbuild \
-    --root "$STAGING_DIR" \
+    --root "$PKG_STAGING_DIR" \
     --identifier "com.wkngw.${APP_NAME}" \
     --version "$VERSION" \
     --install-location /Applications \
     "$PKG_NAME"
 
-rm -rf "$STAGING_DIR"
+echo "Staging app bundle for dmg..."
+rm -rf "$DMG_STAGING_DIR"
+mkdir -p "$DMG_STAGING_DIR"
+cp -R "$APP_BUNDLE" "$DMG_STAGING_DIR/"
+ln -s /Applications "$DMG_STAGING_DIR/Applications"
+
+echo "Creating dmg..."
+rm -f "$DMG_NAME"
+hdiutil create \
+    -volname "$APP_NAME" \
+    -srcfolder "$DMG_STAGING_DIR" \
+    -ov \
+    -format UDZO \
+    "$DMG_NAME"
+
+rm -rf "$PKG_STAGING_DIR" "$DMG_STAGING_DIR"
 
 echo "Package created: $PKG_NAME"
+echo "Disk image created: $DMG_NAME"
