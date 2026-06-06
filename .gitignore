@@ -1,5 +1,10 @@
 # Xcode
 *.xcodeproj/
+!audx.xcodeproj/
+!audx.xcodeproj/project.pbxproj
+!audx.xcodeproj/xcshareddata/
+!audx.xcodeproj/xcshareddata/xcschemes/
+!audx.xcodeproj/xcshareddata/xcschemes/audx.xcscheme
 *.xcworkspace/
 xcuserdata/
 DerivedData/

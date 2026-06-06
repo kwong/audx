@@ -1,79 +1,44 @@
 #!/bin/bash
 
-# build.sh - Script to build audx directly using swiftc to bypass SPM xcbuild issues
+# build.sh - Build audx via xcodebuild and stage audx.app at the repo root.
 
-set -e
+set -euo pipefail
 
 APP_NAME="audx"
 VERSION="${VERSION:-0.0.0-dev}"
-BUILD_DIR=".build/release"
-APP_DIR="$APP_NAME.app"
-CONTENTS_DIR="$APP_DIR/Contents"
-MACOS_DIR="$CONTENTS_DIR/MacOS"
-RESOURCES_DIR="$CONTENTS_DIR/Resources"
+PROJECT_PATH="${APP_NAME}.xcodeproj"
+SCHEME_NAME="${APP_NAME}"
+DERIVED_DATA_PATH=".build/xcode"
+BUILD_CONFIGURATION="Release"
+BUILT_APP_PATH="${DERIVED_DATA_PATH}/Build/Products/${BUILD_CONFIGURATION}/${APP_NAME}.app"
+STAGED_APP_PATH="${APP_NAME}.app"
 
-echo "Building Swift Source..."
-mkdir -p "$BUILD_DIR"
-swiftc -O -whole-module-optimization Sources/audx/*.swift \
-    -o "$BUILD_DIR/$APP_NAME" \
-    -Xlinker -no_adhoc_codesign \
-    -framework SwiftUI -framework AppKit -framework CoreAudio -framework IOBluetooth -framework Carbon -framework UserNotifications
-
-echo "Creating App Bundle Structure..."
-rm -rf "$APP_DIR"
-mkdir -p "$MACOS_DIR"
-mkdir -p "$RESOURCES_DIR"
-
-echo "Copying Executable..."
-cp "$BUILD_DIR/$APP_NAME" "$MACOS_DIR/$APP_NAME"
-chmod +x "$MACOS_DIR/$APP_NAME"
-
-echo "Copying Assets..."
-if [ -f "AppIcon.icns" ]; then
-    cp "AppIcon.icns" "$RESOURCES_DIR/"
+if ! command -v xcodebuild >/dev/null 2>&1; then
+    echo "Error: xcodebuild is not available. Install full Xcode and make sure it is the active developer directory." >&2
+    exit 1
 fi
 
-echo "Creating PkgInfo..."
-echo "APPL????" > "$CONTENTS_DIR/PkgInfo"
+echo "Building Xcode project (${VERSION})..."
+rm -rf "${DERIVED_DATA_PATH}" "${STAGED_APP_PATH}"
 
-echo "Creating Info.plist..."
-cat > "$CONTENTS_DIR/Info.plist" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundleExecutable</key>
-    <string>$APP_NAME</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.wkngw.$APP_NAME</string>
-    <key>CFBundleName</key>
-    <string>$APP_NAME</string>
-    <key>CFBundleVersion</key>
-    <string>$VERSION</string>
-    <key>CFBundleShortVersionString</key>
-    <string>$VERSION</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>LSUIElement</key>
-    <true/>
-    <key>NSPrincipalClass</key>
-    <string>NSApplication</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Audx requires audio access to monitor playing audio and switch outputs.</string>
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>Audx uses Bluetooth to automatically disconnect idle devices.</string>
-</dict>
-</plist>
-EOF
+xcodebuild \
+    -project "${PROJECT_PATH}" \
+    -scheme "${SCHEME_NAME}" \
+    -configuration "${BUILD_CONFIGURATION}" \
+    -derivedDataPath "${DERIVED_DATA_PATH}" \
+    MARKETING_VERSION="${VERSION}" \
+    CURRENT_PROJECT_VERSION="${VERSION}" \
+    CODE_SIGN_IDENTITY="-" \
+    CODE_SIGN_STYLE=Manual \
+    CODE_SIGNING_ALLOWED=YES \
+    build
 
-echo "Forcing LaunchServices reload..."
-touch "$APP_DIR"
+if [ ! -d "${BUILT_APP_PATH}" ]; then
+    echo "Error: expected built app at ${BUILT_APP_PATH}" >&2
+    exit 1
+fi
 
-echo "Signing app bundle..."
-codesign --sign - --identifier "com.wkngw.$APP_NAME" --options runtime "$APP_DIR"
+cp -R "${BUILT_APP_PATH}" "${STAGED_APP_PATH}"
+touch "${STAGED_APP_PATH}"
 
-echo "App bundle created at $APP_DIR"
+echo "App bundle created at ${STAGED_APP_PATH}"
