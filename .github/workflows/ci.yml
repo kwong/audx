@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build app bundle
+        run: |
+          chmod +x build.sh
+          VERSION=0.0.0-ci ./build.sh
+
+      - name: Verify bundle version
+        run: |
+          ACTUAL_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' audx.app/Contents/Info.plist)"
+          test "$ACTUAL_VERSION" = "0.0.0-ci"
