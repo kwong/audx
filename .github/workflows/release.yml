@@ -23,6 +23,11 @@ jobs:
           chmod +x build.sh package.sh
           VERSION=$VERSION ./package.sh
 
+      - name: Verify bundle version matches tag
+        run: |
+          ACTUAL_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' audx.app/Contents/Info.plist)"
+          test "$ACTUAL_VERSION" = "$VERSION"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

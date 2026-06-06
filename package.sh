@@ -21,6 +21,13 @@ echo "Building app bundle (version $VERSION)..."
 export VERSION
 ./build.sh
 
+echo "Verifying app bundle version..."
+BUNDLE_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_BUNDLE/Contents/Info.plist")"
+if [ "$BUNDLE_VERSION" != "$VERSION" ]; then
+    echo "Error: built app bundle version '$BUNDLE_VERSION' does not match expected version '$VERSION'" >&2
+    exit 1
+fi
+
 echo "Staging app bundle for pkg..."
 rm -rf "$PKG_STAGING_DIR"
 mkdir -p "$PKG_STAGING_DIR"
