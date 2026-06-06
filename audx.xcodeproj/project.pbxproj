@@ -1,0 +1,281 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A00100010000000000000000 /* AudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101010000000000000000 /* AudioManager.swift */; };
+		A00100020000000000000000 /* BluetoothManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101020000000000000000 /* BluetoothManager.swift */; };
+		A00100030000000000000000 /* DeviceSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101030000000000000000 /* DeviceSelectorView.swift */; };
+		A00100040000000000000000 /* FloatingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101040000000000000000 /* FloatingWindowController.swift */; };
+		A00100050000000000000000 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101050000000000000000 /* HotKeyManager.swift */; };
+		A00100060000000000000000 /* IdleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101060000000000000000 /* IdleManager.swift */; };
+		A00100070000000000000000 /* audxApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00101070000000000000000 /* audxApp.swift */; };
+		A00100080000000000000000 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = A00101080000000000000000 /* AppIcon.icns */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A00101010000000000000000 /* AudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioManager.swift; sourceTree = "<group>"; };
+		A00101020000000000000000 /* BluetoothManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothManager.swift; sourceTree = "<group>"; };
+		A00101030000000000000000 /* DeviceSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceSelectorView.swift; sourceTree = "<group>"; };
+		A00101040000000000000000 /* FloatingWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWindowController.swift; sourceTree = "<group>"; };
+		A00101050000000000000000 /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		A00101060000000000000000 /* IdleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdleManager.swift; sourceTree = "<group>"; };
+		A00101070000000000000000 /* audxApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = audxApp.swift; sourceTree = "<group>"; };
+		A00101080000000000000000 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = SOURCE_ROOT; };
+		A00101090000000000000000 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00101100000000000000000 /* audx.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = audx.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A00102010000000000000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A00103010000000000000000 = {
+			isa = PBXGroup;
+			children = (
+				A00103020000000000000000 /* Sources */,
+				A00103030000000000000000 /* Resources */,
+				A00103040000000000000000 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A00103020000000000000000 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				A00101010000000000000000 /* AudioManager.swift */,
+				A00101020000000000000000 /* BluetoothManager.swift */,
+				A00101030000000000000000 /* DeviceSelectorView.swift */,
+				A00101040000000000000000 /* FloatingWindowController.swift */,
+				A00101050000000000000000 /* HotKeyManager.swift */,
+				A00101060000000000000000 /* IdleManager.swift */,
+				A00101070000000000000000 /* audxApp.swift */,
+			);
+			path = Sources/audx;
+			sourceTree = SOURCE_ROOT;
+		};
+		A00103030000000000000000 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A00101080000000000000000 /* AppIcon.icns */,
+				A00101090000000000000000 /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = SOURCE_ROOT;
+		};
+		A00103040000000000000000 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A00101100000000000000000 /* audx.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A00104010000000000000000 /* audx */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A00105020000000000000000 /* Build configuration list for PBXNativeTarget "audx" */;
+			buildPhases = (
+				A00102020000000000000000 /* Sources */,
+				A00102010000000000000000 /* Frameworks */,
+				A00102030000000000000000 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = audx;
+			productName = audx;
+			productReference = A00101100000000000000000 /* audx.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A00105010000000000000000 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A00104010000000000000000 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A00105030000000000000000 /* Build configuration list for PBXProject "audx" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A00103010000000000000000;
+			productRefGroup = A00103040000000000000000 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A00104010000000000000000 /* audx */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A00102030000000000000000 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100080000000000000000 /* AppIcon.icns in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A00102020000000000000000 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A00100010000000000000000 /* AudioManager.swift in Sources */,
+				A00100020000000000000000 /* BluetoothManager.swift in Sources */,
+				A00100030000000000000000 /* DeviceSelectorView.swift in Sources */,
+				A00100040000000000000000 /* FloatingWindowController.swift in Sources */,
+				A00100050000000000000000 /* HotKeyManager.swift in Sources */,
+				A00100060000000000000000 /* IdleManager.swift in Sources */,
+				A00100070000000000000000 /* audxApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A00106010000000000000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 0.0.0-dev;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.0-dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wkngw.audx;
+				PRODUCT_NAME = audx;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A00106020000000000000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 0.0.0-dev;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.0-dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wkngw.audx;
+				PRODUCT_NAME = audx;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A00106030000000000000000 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 0.0.0-dev;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.0-dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wkngw.audx;
+				PRODUCT_NAME = audx;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A00106040000000000000000 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 0.0.0-dev;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.0-dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wkngw.audx;
+				PRODUCT_NAME = audx;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A00105020000000000000000 /* Build configuration list for PBXNativeTarget "audx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00106030000000000000000 /* Debug */,
+				A00106040000000000000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A00105030000000000000000 /* Build configuration list for PBXProject "audx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A00106010000000000000000 /* Debug */,
+				A00106020000000000000000 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A00105010000000000000000 /* Project object */;
+}
