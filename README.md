@@ -25,6 +25,11 @@ Launch audx from Applications. It runs as a menu bar app, so you will see its ic
 
 If macOS shows a security warning the first time you open it, open `System Settings > Privacy & Security` and allow the app to run, then launch it again.
 
+Alternatively, run the following command:
+```bash
+xattr -r -d com.apple.quarantine /Applications/audx.app
+```
+
 ## Quick start
 
 - Click the audx icon in the menu bar to open the device selector.
