@@ -3,11 +3,33 @@ import SwiftUI
 import AppKit
 import UserNotifications
 
+enum NotificationAuthorizationState: Equatable {
+    case notDetermined
+    case denied
+    case authorized
+
+    init(status: UNAuthorizationStatus) {
+        switch status {
+        case .authorized, .provisional, .ephemeral:
+            self = .authorized
+        case .denied:
+            self = .denied
+        case .notDetermined:
+            self = .notDetermined
+        @unknown default:
+            self = .denied
+        }
+    }
+}
+
 class IdleManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
-    @Published var notificationsAllowed: Bool = true
+    @Published var notificationsAllowed: Bool = false
+    @Published var notificationAuthorizationState: NotificationAuthorizationState = .notDetermined
+    @Published var isUpdatingNotificationPermission: Bool = false
     private var timer: Timer?
     private var idleStartTimes: [String: Date] = [:] // MAC Address to Date
     private var notifiedDevices: Set<String> = [] // MAC Address Set
+    private var lastTestNotificationIdentifier: String?
     
     @AppStorage("idleTimeoutMinutes") private var idleTimeoutMinutes: Double = 15.0
     @AppStorage("showIdleWarnings") private var showIdleWarnings: Bool = true
@@ -19,18 +41,7 @@ class IdleManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate 
     override init() {
         super.init()
         UNUserNotificationCenter.current().delegate = self
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { [weak self] granted, error in
-            DispatchQueue.main.async {
-                self?.notificationsAllowed = granted
-            }
-            if let error = error {
-                print("[IdleManager] Notification auth error: \(error.localizedDescription)")
-            }
-            print("[IdleManager] Notification permission granted=\(granted)")
-            if !granted {
-                print("[IdleManager] Notifications denied. Enable audx notifications in System Settings → Notifications.")
-            }
-        }
+        refreshNotificationAuthorizationStatus()
     }
 
     func userNotificationCenter(
@@ -47,6 +58,83 @@ class IdleManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate 
             self?.checkIdleStatus()
         }
         checkIdleStatus()
+    }
+
+    func refreshNotificationAuthorizationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+            DispatchQueue.main.async {
+                self?.applyNotificationSettings(settings)
+            }
+        }
+    }
+
+    func setDisconnectWarningsEnabled(_ enabled: Bool) {
+        guard enabled else {
+            showIdleWarnings = false
+            refreshNotificationAuthorizationStatus()
+            return
+        }
+
+        isUpdatingNotificationPermission = true
+        UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
+            guard let self else { return }
+
+            DispatchQueue.main.async {
+                self.applyNotificationSettings(settings)
+            }
+
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                DispatchQueue.main.async {
+                    self.showIdleWarnings = true
+                    self.isUpdatingNotificationPermission = false
+                }
+            case .notDetermined:
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+                    if let error {
+                        print("[IdleManager] Notification auth error: \(error.localizedDescription)")
+                    }
+
+                    self.refreshNotificationAuthorizationStatus()
+
+                    DispatchQueue.main.async {
+                        self.showIdleWarnings = granted
+                        self.isUpdatingNotificationPermission = false
+                    }
+                }
+            case .denied:
+                DispatchQueue.main.async {
+                    self.showIdleWarnings = false
+                    self.isUpdatingNotificationPermission = false
+                }
+            @unknown default:
+                DispatchQueue.main.async {
+                    self.showIdleWarnings = false
+                    self.isUpdatingNotificationPermission = false
+                }
+            }
+        }
+    }
+
+    func openNotificationSettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
+    }
+
+    func sendTestIdleNotification() {
+        let deviceName = bluetoothManager?.connectedAudioDevices.first?.name ?? "Bluetooth Device"
+        let identifier = "test-\(UUID().uuidString)"
+        removeNotificationIfNeeded(identifier: lastTestNotificationIdentifier)
+        lastTestNotificationIdentifier = identifier
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        sendNotification(
+            for: deviceName,
+            id: identifier,
+            disableWarningsOnFailure: false,
+            trigger: trigger
+        )
     }
     
     private func checkIdleStatus() {
@@ -119,31 +207,69 @@ class IdleManager: NSObject, ObservableObject, UNUserNotificationCenterDelegate 
     
     private func sendIdleNotification(for deviceName: String, id: String) {
         print("[IdleManager] Sending idle notification for \(deviceName)")
+        sendNotification(for: deviceName, id: id, disableWarningsOnFailure: true, trigger: nil)
+    }
+
+    private func sendNotification(
+        for deviceName: String,
+        id: String,
+        disableWarningsOnFailure: Bool,
+        trigger: UNNotificationTrigger?
+    ) {
         UNUserNotificationCenter.current().getNotificationSettings { [weak self] settings in
             print("[IdleManager] Notification authorizationStatus=\(settings.authorizationStatus.rawValue) alertSetting=\(settings.alertSetting.rawValue)")
             guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
-                print("[IdleManager] Notifications not authorized — opening System Settings")
+                print("[IdleManager] Notifications not authorized")
                 DispatchQueue.main.async {
-                    self?.notificationsAllowed = false
-                    NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.notifications")!)
+                    self?.applyNotificationSettings(settings)
+                    if disableWarningsOnFailure {
+                        self?.showIdleWarnings = false
+                    }
                 }
                 return
             }
 
-            let content = UNMutableNotificationContent()
-            content.title = "Device Idle"
-            content.body = "\(deviceName) will be disconnected in 1 minute due to inactivity."
-            content.sound = .default
+            let content = self?.makeIdleNotificationContent(for: deviceName) ?? UNMutableNotificationContent()
 
             // Remove stale notifications for this device to prevent clutter
-            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ["idle-\(id)"])
+            self?.removeNotification(identifier: id)
 
-            let request = UNNotificationRequest(identifier: "idle-\(id)", content: content, trigger: nil)
+            let request = UNNotificationRequest(identifier: "idle-\(id)", content: content, trigger: trigger)
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
                     print("[IdleManager] Error showing notification: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+
+    private func makeIdleNotificationContent(for deviceName: String) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = "Device Idle"
+        content.body = "\(deviceName) will be disconnected in 1 minute due to inactivity."
+        content.sound = .default
+        return content
+    }
+
+    private func removeNotificationIfNeeded(identifier: String?) {
+        guard let identifier else { return }
+        removeNotification(identifier: identifier)
+    }
+
+    private func removeNotification(identifier: String) {
+        let notificationIdentifier = "idle-\(identifier)"
+        let center = UNUserNotificationCenter.current()
+        center.removeDeliveredNotifications(withIdentifiers: [notificationIdentifier])
+        center.removePendingNotificationRequests(withIdentifiers: [notificationIdentifier])
+    }
+
+    private func applyNotificationSettings(_ settings: UNNotificationSettings) {
+        let state = NotificationAuthorizationState(status: settings.authorizationStatus)
+        notificationAuthorizationState = state
+        notificationsAllowed = state == .authorized
+
+        if state == .denied && showIdleWarnings {
+            showIdleWarnings = false
         }
     }
 }

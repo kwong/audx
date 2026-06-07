@@ -16,6 +16,21 @@ private extension Bundle {
     }
 }
 
+private let idleTimeoutRange: ClosedRange<Double> = 0...30
+
+private func normalizedIdleTimeoutMinutes(_ value: Double) -> Double {
+    min(max(round(value), idleTimeoutRange.lowerBound), idleTimeoutRange.upperBound)
+}
+
+private func idleTimeoutDisplayText(_ value: Double) -> String {
+    let normalizedValue = Int(normalizedIdleTimeoutMinutes(value))
+    if normalizedValue == 0 {
+        return "Never"
+    }
+    let unitLabel = normalizedValue == 1 ? "min" : "mins"
+    return "\(normalizedValue) \(unitLabel)"
+}
+
 @main
 struct audxApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -33,13 +48,15 @@ struct PopoverContentView: View {
     
     @AppStorage("idleTimeoutMinutes") private var idleTimeoutMinutes: Double = 15.0
     @AppStorage("shortcutName") private var shortcutName: String = "⌘ \\"
-    
-    let timeoutOptions: [Double] = [0, 5, 10, 15, 30] // 0 = Never
-    
-    private var sliderIndex: Binding<Double> {
+
+    private var normalizedIdleTimeout: Double {
+        normalizedIdleTimeoutMinutes(idleTimeoutMinutes)
+    }
+
+    private var sliderValue: Binding<Double> {
         Binding<Double>(
-            get: { Double(timeoutOptions.firstIndex(of: idleTimeoutMinutes) ?? 3) },
-            set: { idleTimeoutMinutes = timeoutOptions[Int(round($0))] }
+            get: { normalizedIdleTimeout },
+            set: { idleTimeoutMinutes = normalizedIdleTimeoutMinutes($0) }
         )
     }
 
@@ -60,10 +77,10 @@ struct PopoverContentView: View {
             
             // BT Device Idle Timeout
             VStack(alignment: .leading, spacing: 8) {
-                Text("BT Device Idle Timeout: \(idleTimeoutMinutes == 0 ? "Never" : "\(Int(idleTimeoutMinutes)) mins")")
+                Text("BT Device Idle Timeout: \(idleTimeoutDisplayText(normalizedIdleTimeout))")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.secondary)
-                CustomSlider(value: sliderIndex)
+                CustomSlider(value: sliderValue, maxValue: idleTimeoutRange.upperBound)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -261,7 +278,7 @@ class AppState: NSObject, ObservableObject {
             return
         }
         
-        let controller = NSHostingController(rootView: SettingsView(appState: self))
+        let controller = NSHostingController(rootView: SettingsView(appState: self, idleManager: idleManager))
         let window = NSWindow(contentViewController: controller)
         window.title = "audx Settings"
         window.styleMask = [.titled, .closable]
@@ -276,23 +293,48 @@ class AppState: NSObject, ObservableObject {
 
 struct SettingsView: View {
     @ObservedObject var appState: AppState
+    @ObservedObject var idleManager: IdleManager
     
     @AppStorage("idleTimeoutMinutes") private var idleTimeoutMinutes: Double = 15.0
     @AppStorage("showIdleWarnings") private var showIdleWarnings: Bool = true
     @AppStorage("shortcutKeyCode") private var shortcutKeyCode: Int = 42
     @AppStorage("shortcutModifiers") private var shortcutModifiers: Int = Int(NSEvent.ModifierFlags.command.rawValue)
     @AppStorage("shortcutName") private var shortcutName: String = "⌘ \\"
-    
-    let timeoutOptions: [Double] = [0, 5, 10, 15, 30]
-    
-    private var sliderIndex: Binding<Double> {
+
+    private var normalizedIdleTimeout: Double {
+        normalizedIdleTimeoutMinutes(idleTimeoutMinutes)
+    }
+
+    private var sliderValue: Binding<Double> {
         Binding<Double>(
-            get: { Double(timeoutOptions.firstIndex(of: idleTimeoutMinutes) ?? 3) },
-            set: { idleTimeoutMinutes = timeoutOptions[Int(round($0))] }
+            get: { normalizedIdleTimeout },
+            set: { idleTimeoutMinutes = normalizedIdleTimeoutMinutes($0) }
         )
     }
 
     private var appVersion: String { Bundle.main.audxVersion }
+
+    private var disconnectWarningBinding: Binding<Bool> {
+        Binding(
+            get: { showIdleWarnings },
+            set: { idleManager.setDisconnectWarningsEnabled($0) }
+        )
+    }
+
+    private var notificationStatusText: String {
+        switch idleManager.notificationAuthorizationState {
+        case .notDetermined:
+            return "Allow notifications to show idle warnings"
+        case .denied:
+            return "Notifications are off in System Settings"
+        case .authorized:
+            return ""
+        }
+    }
+
+    private var showsTestNotificationButton: Bool {
+        idleManager.notificationAuthorizationState == .authorized && showIdleWarnings
+    }
     
     var body: some View {
         ZStack {
@@ -344,7 +386,7 @@ struct SettingsView: View {
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Text(idleTimeoutMinutes == 0 ? "Never" : "\(Int(idleTimeoutMinutes)) min")
+                                Text(idleTimeoutDisplayText(normalizedIdleTimeout))
                                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
                                     .foregroundColor(.primary.opacity(0.9))
                                     .padding(.horizontal, 8)
@@ -353,26 +395,49 @@ struct SettingsView: View {
                                         Capsule().fill(Color.primary.opacity(0.1))
                                     )
                             }
-                            CustomSlider(value: sliderIndex)
+                            CustomSlider(value: sliderValue, maxValue: idleTimeoutRange.upperBound)
                                 .padding(.top, 2)
                         }
                         
                         Divider()
                             .padding(.horizontal, -16)
                         
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Disconnect warning")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.primary.opacity(0.85))
-                                Text("Show a notification before disconnecting")
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Disconnect warning")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.primary.opacity(0.85))
+                                    Text("Show a notification before disconnecting")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Toggle("", isOn: disconnectWarningBinding)
+                                    .toggleStyle(.switch)
+                                    .labelsHidden()
+                                    .disabled(idleManager.isUpdatingNotificationPermission)
+                            }
+
+                            if idleManager.notificationAuthorizationState == .denied {
+                                WarningCallout(text: notificationStatusText)
+
+                                Button("Enable Notifications") {
+                                    idleManager.openNotificationSettings()
+                                }
+                                .buttonStyle(GreenPillButtonStyle())
+                            } else if idleManager.notificationAuthorizationState == .notDetermined {
+                                Text(notificationStatusText)
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                             }
-                            Spacer()
-                            Toggle("", isOn: $showIdleWarnings)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
+
+                            if showsTestNotificationButton {
+                                Button("Test Notification") {
+                                    idleManager.sendTestIdleNotification()
+                                }
+                                .buttonStyle(DarkPillButtonStyle())
+                            }
                         }
                     }
                     
@@ -419,6 +484,15 @@ struct SettingsView: View {
             }
         }
         .frame(width: 420, height: 420)
+        .onAppear {
+            idleManager.refreshNotificationAuthorizationStatus()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            idleManager.refreshNotificationAuthorizationStatus()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
+            idleManager.refreshNotificationAuthorizationStatus()
+        }
     }
 }
 
@@ -481,6 +555,56 @@ struct DarkPillButtonStyle: ButtonStyle {
                     .fill(Color.primary.opacity(configuration.isPressed ? 0.06 : 0.12))
             )
             .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+struct GreenPillButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(.white.opacity(configuration.isPressed ? 0.9 : 1.0))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(
+                        Color(
+                            red: configuration.isPressed ? 0.16 : 0.20,
+                            green: configuration.isPressed ? 0.63 : 0.72,
+                            blue: configuration.isPressed ? 0.30 : 0.38
+                        )
+                    )
+            )
+            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+struct WarningCallout: View {
+    let text: String
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color(red: 0.86, green: 0.56, blue: 0.15))
+                .padding(.top, 1)
+
+            Text(text)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.primary.opacity(colorScheme == .dark ? 0.92 : 0.82))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 9)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(red: 0.95, green: 0.66, blue: 0.18).opacity(colorScheme == .dark ? 0.20 : 0.14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(Color(red: 0.88, green: 0.62, blue: 0.18).opacity(colorScheme == .dark ? 0.45 : 0.32), lineWidth: 0.8)
+                )
+        )
     }
 }
 
@@ -549,7 +673,8 @@ struct ShortcutRecorderView: View {
 }
 
 struct CustomSlider: View {
-    @Binding var value: Double // Expected range 0...4
+    @Binding var value: Double
+    let maxValue: Double
     
     var body: some View {
         GeometryReader { geometry in
@@ -560,8 +685,9 @@ struct CustomSlider: View {
             let width = geometry.size.width
             let padding = thumbWidth / 2
             let trackWidth = width - thumbWidth
+            let clampedValue = min(max(round(value), 0), maxValue)
+            let percent = maxValue > 0 ? CGFloat(clampedValue / maxValue) : 0
             
-            let percent = CGFloat(value / 4.0)
             let thumbOffset = percent * trackWidth
             
             ZStack(alignment: .leading) {
@@ -590,7 +716,7 @@ struct CustomSlider: View {
                     .onChanged { gesture in
                         let tapX = gesture.location.x - padding
                         let newPercent = max(0, min(1, tapX / trackWidth))
-                        let newValue = round(Double(newPercent) * 4.0)
+                        let newValue = round(Double(newPercent) * maxValue)
                         if value != newValue {
                             value = newValue
                         }
